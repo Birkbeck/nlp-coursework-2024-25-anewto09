@@ -58,7 +58,8 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
         # save row to be put into dataframe
         rows.append((text, title, author, year))
     
-    return pd.DataFrame(rows, columns=["text", "title", "author", "year"])
+    df = pd.DataFrame(rows, columns=["text", "title", "author", "year"])
+    return df.sort_values('year', ignore_index=True)
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
