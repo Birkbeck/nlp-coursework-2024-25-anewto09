@@ -9,6 +9,7 @@ from pathlib import Path
 import glob
 
 from tqdm import tqdm # for a loading bar go give a sense of progress for slow computations
+from collections import Counter
 
 #nlp = spacy.load("en_core_web_sm")
 #nlp.max_length = 2000000
@@ -67,9 +68,20 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     pass
 
 
+def filter_punctuation(token: str) -> bool:
+    """Returns False if the given token is punctuation"""
+    # TODO: implement
+    return True
+
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    pass
+    tokens = [t.lower() for t in nltk.word_tokenize(text) if filter_punctuation(t)] # ignore punctuation and case
+    types = Counter(tokens)
+    return (
+        len(types) # number of token types
+        /
+        types.total() # number of (non-punctuation) tokens
+    )
 
 
 def get_ttrs(df):
@@ -115,10 +127,11 @@ if __name__ == "__main__":
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     print(df.head())
+    #nltk.download('punkt') # nltk insisted on this in an error message
     #nltk.download("cmudict")
     #parse(df)
     #print(df.head())
-    #print(get_ttrs(df))
+    print(get_ttrs(df))
     #print(get_fks(df))
     #df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
     # print(adjective_counts(df))
