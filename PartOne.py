@@ -4,6 +4,7 @@
 
 import nltk
 #import spacy
+import pandas as pd
 from pathlib import Path
 import glob
 
@@ -46,14 +47,18 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
     files = glob.glob(str(path / "*.txt"))
+    rows = []
     for filename in tqdm(files):
         # extract metadata from filename
         title, author, year = Path(filename).stem.split("-")
         title = title.replace("_", " ") # underscores are represented by spaces in the file names
-        print(title, author, year)
-
-    pass
-
+        # extract text
+        with open(filename, "r", encoding="utf-8") as f:
+            text = f.read()
+        # save row to be put into dataframe
+        rows.append((text, title, author, year))
+    
+    return pd.DataFrame(rows, columns=["text", "title", "author", "year"])
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
@@ -108,7 +113,7 @@ if __name__ == "__main__":
     path = Path.cwd() / "p1-texts" / "novels"
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    #print(df.head())
+    print(df.head())
     #nltk.download("cmudict")
     #parse(df)
     #print(df.head())
