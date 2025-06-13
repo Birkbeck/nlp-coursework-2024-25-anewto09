@@ -3,12 +3,14 @@
 # Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
 
 import nltk
-import spacy
+#import spacy
 from pathlib import Path
+import glob
 
+from tqdm import tqdm # for a loading bar go give a sense of progress for slow computations
 
-nlp = spacy.load("en_core_web_sm")
-nlp.max_length = 2000000
+#nlp = spacy.load("en_core_web_sm")
+#nlp.max_length = 2000000
 
 
 
@@ -43,6 +45,13 @@ def count_syl(word, d):
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
+    files = glob.glob(str(path / "*.txt"))
+    for filename in tqdm(files):
+        # extract metadata from filename
+        title, author, year = Path(filename).stem.split("-")
+        title = title.replace("_", " ") # underscores are represented by spaces in the file names
+        print(title, author, year)
+
     pass
 
 
@@ -96,9 +105,9 @@ if __name__ == "__main__":
     """
     uncomment the following lines to run the functions once you have completed them
     """
-    #path = Path.cwd() / "p1-texts" / "novels"
-    #print(path)
-    #df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    path = Path.cwd() / "p1-texts" / "novels"
+    print(path)
+    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     #print(df.head())
     #nltk.download("cmudict")
     #parse(df)
