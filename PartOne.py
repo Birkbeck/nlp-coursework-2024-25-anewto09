@@ -7,6 +7,7 @@ import nltk
 import pandas as pd
 from pathlib import Path
 import glob
+import re
 
 from tqdm import tqdm # for a loading bar go give a sense of progress for slow computations
 from collections import Counter
@@ -68,15 +69,16 @@ def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     pass
 
 
-def filter_punctuation(token: str) -> bool:
-    """Returns False if the given token is punctuation"""
-    # TODO: implement
-    return True
+def ispunctuation(token: str) -> bool:
+    """Returns True if the given token is punctuation"""
+    return re.match(r"^\W*$", token)
+
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    tokens = [t.lower() for t in nltk.word_tokenize(text) if filter_punctuation(t)] # ignore punctuation and case
+    tokens = [t.lower() for t in nltk.word_tokenize(text) if not ispunctuation(t)] # ignore punctuation and case
     types = Counter(tokens)
+    print(list(types.keys()))
     return (
         len(types) # number of token types
         /
