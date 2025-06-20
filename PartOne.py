@@ -139,12 +139,12 @@ def objects_counts(doc, n: int = 10) -> list[tuple[str, int]]:
 
 def subjects_by_verb_pmi(doc, target_verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    pass
 
 
-def subjects_by_verb_count(doc, verb):
+def subjects_by_verb_count(doc, verb, n: int = 10):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    pass
+    counter = Counter(token.text for token in doc if token.dep_ == "nsubj" and token.head.lemma_ == verb)
+    return counter.most_common(n)
 
 
 if __name__ == "__main__":
@@ -169,15 +169,16 @@ if __name__ == "__main__":
     for _, row in df.iterrows():
         print(row["title"])
         print(objects_counts(row["doc"]))
-
-    """ 
-    for i, row in df.iterrows():
-        print(row["title"])
-        print(subjects_by_verb_count(row["parsed"], "hear"))
         print("\n")
 
     for i, row in df.iterrows():
         print(row["title"])
-        print(subjects_by_verb_pmi(row["parsed"], "hear"))
+        print(subjects_by_verb_count(row["doc"], "hear"))
+        print("\n")
+        
+    """
+    for i, row in df.iterrows():
+        print(row["title"])
+        print(subjects_by_verb_pmi(row["doc"], "hear"))
         print("\n")
     """
