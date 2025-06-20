@@ -6,16 +6,16 @@ import nltk
 import nltk.corpus
 import spacy
 import pandas as pd
-from pathlib import Path
 import glob
 import re
+import os
 
 from tqdm import tqdm # for a loading bar go give a sense of progress for slow computations
 from collections import Counter
+from pathlib import Path
 
-#nlp = spacy.load("en_core_web_sm")
-#nlp.max_length = 2000000
-
+nlp = spacy.load("en_core_web_sm")
+nlp.max_length = 2000000
 
 
 def fk_level(text, d):
@@ -45,7 +45,7 @@ def flesch_kincaid(df: pd.DataFrame) -> dict[str, float]:
     """
     d = nltk.corpus.cmudict.dict()
     return {
-        row["title"]: fk_level(row["text"], d) for _, row in df.iterrows()
+        row["title"]: fk_level(row["text"], d) for _, row in tqdm(df.iterrows())
     }
 
 VOWELS = {"A", "E", "I", "O", "U"}
@@ -90,11 +90,12 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
     df = pd.DataFrame(rows, columns=["text", "title", "author", "year"])
     return df.sort_values('year', ignore_index=True)
 
-def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
+def parse(df: pd.DataFrame, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
     the resulting  DataFrame to a pickle file"""
-    pass
-
+    df["doc"] = [nlp(row["text"]) for _, row in tqdm(df.iterrows())]
+    os.makedirs(store_path, exist_ok=True)
+    pd.to_pickle(df, store_path / out_name)
 
 def ispunctuation(token: str) -> bool:
     """Returns True if the given token is punctuation"""
@@ -127,7 +128,7 @@ def nltk_ttr(df: pd.DataFrame) -> dict[str, float]:
     Produces a dict mapping titles to type-to-token ratios
     """
     return {
-        row["title"]: single_ttr(row["text"]) for _, row in df.iterrows()
+        row["title"]: single_ttr(row["text"]) for _, row in tqdm(df.iterrows())
     }
 
 
@@ -159,14 +160,14 @@ if __name__ == "__main__":
 
     path = Path.cwd() / "p1-texts" / "novels"
     print(path)
-    # df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    # print(df.head())
+    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    print(df.head())
     # print(nltk_ttr(df))
-    #print(flesch_kincaid(df))
-    #parse(df)
-    #print(df.head())
-    #print(get_fks(df))
-    #df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
+    # print(flesch_kincaid(df))
+    parse(df)
+    print(df.head())
+    df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
+    print(df.head())
     # print(adjective_counts(df))
     """ 
     for i, row in df.iterrows():
