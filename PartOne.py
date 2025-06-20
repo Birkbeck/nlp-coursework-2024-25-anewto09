@@ -69,6 +69,7 @@ def count_syl(word, d):
     pronunciation = d[word][0]
     return sum(phon[0] in VOWELS for phon in pronunciation)
 
+# tests
 # d = nltk.corpus.cmudict.dict()
 # print(count_syl("antidisestablishmentarianism", d), count_syl("potato", d))
 
@@ -131,24 +132,10 @@ def nltk_ttr(df: pd.DataFrame) -> dict[str, float]:
         row["title"]: single_ttr(row["text"]) for _, row in tqdm(df.iterrows())
     }
 
-
-def subjects_by_verb_pmi(doc, target_verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    pass
-
-
-
-def subjects_by_verb_count(doc, verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    pass
-
-
-
-def adjective_counts(doc):
-    """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
-    pass
-
-
+def objects_counts(doc, n: int = 10) -> list[tuple[str, int]]:
+    """Extracts the most common syntactic objects in a parsed document. Returns a list of tuples."""
+    counter = Counter(token.text for token in doc if token.dep_ == "dobj")
+    return counter.most_common(n)
 
 if __name__ == "__main__":
     """
@@ -160,24 +147,15 @@ if __name__ == "__main__":
 
     path = Path.cwd() / "p1-texts" / "novels"
     print(path)
-    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    print(df.head())
+    # df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    # print(df.head())
     # print(nltk_ttr(df))
     # print(flesch_kincaid(df))
-    parse(df)
-    print(df.head())
+    # parse(df)
+    # print(df.head())
     df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
     print(df.head())
-    # print(adjective_counts(df))
-    """ 
-    for i, row in df.iterrows():
+    
+    for _, row in df.iterrows():
         print(row["title"])
-        print(subjects_by_verb_count(row["parsed"], "hear"))
-        print("\n")
-
-    for i, row in df.iterrows():
-        print(row["title"])
-        print(subjects_by_verb_pmi(row["parsed"], "hear"))
-        print("\n")
-    """
-
+        print(objects_counts(row["doc"]))
