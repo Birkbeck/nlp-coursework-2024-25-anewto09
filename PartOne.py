@@ -4,7 +4,7 @@
 
 import nltk
 import nltk.corpus
-#import spacy
+import spacy
 import pandas as pd
 from pathlib import Path
 import glob
@@ -43,8 +43,9 @@ def flesch_kincaid(df: pd.DataFrame) -> dict[str, float]:
     """
     Produces a dict mapping titles to Flesch-Kincaid reading grade level scores
     """
+    d = nltk.corpus.cmudict.dict()
     return {
-        row["title"]: fk_level(row["text"], nltk.corpus.cmudict.dict()) for _, row in df.iterrows()
+        row["title"]: fk_level(row["text"], d) for _, row in df.iterrows()
     }
 
 VOWELS = {"A", "E", "I", "O", "U"}
@@ -68,6 +69,8 @@ def count_syl(word, d):
     pronunciation = d[word][0]
     return sum(phon[0] in VOWELS for phon in pronunciation)
 
+# d = nltk.corpus.cmudict.dict()
+# print(count_syl("antidisestablishmentarianism", d), count_syl("potato", d))
 
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
@@ -150,15 +153,16 @@ if __name__ == "__main__":
     """
     uncomment the following lines to run the functions once you have completed them
     """
-    path = Path.cwd() / "p1-texts" / "novels"
-    print(path)
-    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    print(df.head())
-    print(nltk_ttr(df))
-    print(flesch_kincaid(df))
     #nltk.download('punkt') # nltk insisted on this in an error message
     #nltk.download('punkt_tab') # and this
     #nltk.download("cmudict")
+
+    path = Path.cwd() / "p1-texts" / "novels"
+    print(path)
+    # df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    # print(df.head())
+    # print(nltk_ttr(df))
+    #print(flesch_kincaid(df))
     #parse(df)
     #print(df.head())
     #print(get_fks(df))
