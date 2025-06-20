@@ -10,6 +10,7 @@ def clean_hansard(df: pd.DataFrame, n_parties: int = 4) -> pd.DataFrame:
                         "party": "Labour"
                     })
     # 2(a) ii.
+    df = df[df["party"] != "Speaker"]
     most_common_parties = set(df["party"]
                                .value_counts()
                                .sort_values(ascending=False)
