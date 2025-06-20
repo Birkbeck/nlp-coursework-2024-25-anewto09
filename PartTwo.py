@@ -1,5 +1,7 @@
 import pathlib
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
 
 DATASET_PATH = pathlib.Path(__file__).parent / "p2-texts" / "hansard40000.csv"
 
@@ -22,10 +24,12 @@ def clean_hansard(df: pd.DataFrame, n_parties: int = 4) -> pd.DataFrame:
     return df
 
 if __name__ == "__main__":
+    # part (a)
     df = pd.read_csv(DATASET_PATH)
     df = clean_hansard(df)
     print(f"Shape of cleaned Hansard dataframe: {df.shape}")
 
+    # part (b)
     text_train, text_test, party_train, party_test = train_test_split(
         df["speech"], df["party"],
         test_size=0.5,
@@ -33,6 +37,9 @@ if __name__ == "__main__":
         shuffle=True,
         stratify=df["party"]
     )
-
-    print(text_train.shape)
-    print(text_test.shape)
+    vectoriser = TfidfVectorizer(
+        stop_words='english',
+        max_features=3000
+    )
+    vec_train = vectoriser.fit_transform(text_train)
+    vec_test = vectoriser.transform(text_test)
