@@ -17,6 +17,9 @@ def clean_hansard(df: pd.DataFrame, n_parties: int = 4) -> pd.DataFrame:
                                .index[:n_parties])
     df = df[df["party"].isin(most_common_parties)]
 
+    # 2(a) iii. and iv.
+    df = df[df["speech_class"] == "Speech" & df["speech_class"].str.len() >= 1000]
+
     return df
 
 if __name__ == "__main__":
