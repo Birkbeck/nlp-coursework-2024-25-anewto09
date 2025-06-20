@@ -18,11 +18,11 @@ def clean_hansard(df: pd.DataFrame, n_parties: int = 4) -> pd.DataFrame:
     df = df[df["party"].isin(most_common_parties)]
 
     # 2(a) iii. and iv.
-    df = df[df["speech_class"] == "Speech" & df["speech_class"].str.len() >= 1000]
+    df = df[(df["speech_class"] == "Speech") & (df["speech_class"].str.len() >= 1000)]
 
     return df
 
 if __name__ == "__main__":
     df = pd.read_csv(DATASET_PATH)
-    print(df["party"].tail())
-    print(clean_hansard(df)["party"].tail())
+    df = clean_hansard(df)
+    print(f"Shape of cleaned Hansard dataframe: {df.shape}")
