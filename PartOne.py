@@ -90,9 +90,17 @@ def ispunctuation(token: str) -> bool:
     """Returns True if the given token is punctuation"""
     return re.match(r"^\W*$", token)
 
+def strip_punctuation(token: str) -> str:
+    """Removes punctuation from the ends of tokens, because nltk's word_tokenizer sometimes leaves punctuation affixed to words."""
+    lstripped = re.sub(r"^\W+", "", token)
+    return re.sub(r"\W+$", "", lstripped)
+
+# tests
+#print(strip_punctuation("fish-"), strip_punctuation("-mongers"), strip_punctuation("end."))
+
 def no_punct_tokenise(text: str) -> list[str]:
     """Tokenises text case-insensitively without punctuation, using nltk's word tokeniser"""
-    return [t.lower() for t in nltk.word_tokenize(text) if not ispunctuation(t)] 
+    return [strip_punctuation(t).lower() for t in nltk.word_tokenize(text) if not ispunctuation(t)] 
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
