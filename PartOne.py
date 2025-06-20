@@ -133,8 +133,8 @@ def nltk_ttr(df: pd.DataFrame) -> dict[str, float]:
     }
 
 def objects_counts(doc, n: int = 10) -> list[tuple[str, int]]:
-    """Extracts the most common syntactic objects in a parsed document. Returns a list of tuples."""
-    counter = Counter(token.text for token in doc if token.dep_ == "dobj")
+    """Extracts the most common syntactic objects (as lemmas) in a parsed document. Returns a list of tuples."""
+    counter = Counter(token.lemma_ for token in doc if token.dep_ == "dobj")
     return counter.most_common(n)
 
 def subjects_by_verb_pmi(doc, target_verb):
@@ -142,8 +142,8 @@ def subjects_by_verb_pmi(doc, target_verb):
 
 
 def subjects_by_verb_count(doc, verb, n: int = 10):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    counter = Counter(token.text for token in doc if token.dep_ == "nsubj" and token.head.lemma_ == verb)
+    """Extracts the most common subjects (as lemmas) of a given verb in a parsed document. Returns a list."""
+    counter = Counter(token.lemma_ for token in doc if token.dep_ == "nsubj" and token.head.lemma_ == verb)
     return counter.most_common(n)
 
 
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         print(row["title"])
         print(subjects_by_verb_count(row["doc"], "hear"))
         print("\n")
-        
+
     """
     for i, row in df.iterrows():
         print(row["title"])
