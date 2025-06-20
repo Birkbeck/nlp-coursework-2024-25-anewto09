@@ -44,7 +44,7 @@ def flesch_kincaid(df: pd.DataFrame) -> dict[str, float]:
     Produces a dict mapping titles to Flesch-Kincaid reading grade level scores
     """
     return {
-        row["title"]: fk_level(row["text"], nltk.corpus.cmudict.dict()) for i, row in df.iterrows()
+        row["title"]: fk_level(row["text"], nltk.corpus.cmudict.dict()) for _, row in df.iterrows()
     }
 
 
@@ -102,7 +102,7 @@ def no_punct_tokenise(text: str) -> list[str]:
     """Tokenises text case-insensitively without punctuation, using nltk's word tokeniser"""
     return [strip_punctuation(t).lower() for t in nltk.word_tokenize(text) if not ispunctuation(t)] 
 
-def nltk_ttr(text):
+def single_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
     tokens = no_punct_tokenise(text)
     types = Counter(tokens)
@@ -112,22 +112,13 @@ def nltk_ttr(text):
         types.total() # number of (non-punctuation) tokens
     )
 
-
-def get_ttrs(df):
-    """helper function to add ttr to a dataframe"""
-    results = {}
-    for i, row in df.iterrows():
-        results[row["title"]] = nltk_ttr(row["text"])
-    return results
-
-
-def get_fks(df):
-    """helper function to add fk scores to a dataframe"""
-    results = {}
-    cmudict = nltk.corpus.cmudict.dict()
-    for i, row in df.iterrows():
-        results[row["title"]] = round(fk_level(row["text"], cmudict), 4)
-    return results
+def nltk_ttr(df: pd.DataFrame) -> dict[str, float]:
+    """
+    Produces a dict mapping titles to type-to-token ratios
+    """
+    return {
+        row["title"]: single_ttr(row["text"]) for _, row in df.iterrows()
+    }
 
 
 def subjects_by_verb_pmi(doc, target_verb):
@@ -156,13 +147,13 @@ if __name__ == "__main__":
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     print(df.head())
+    print(nltk_ttr(df))
     print(flesch_kincaid(df))
     #nltk.download('punkt') # nltk insisted on this in an error message
     #nltk.download('punkt_tab') # and this
     #nltk.download("cmudict")
     #parse(df)
     #print(df.head())
-    #print(get_ttrs(df))
     #print(get_fks(df))
     #df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
     # print(adjective_counts(df))
