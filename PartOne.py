@@ -9,6 +9,7 @@ import pandas as pd
 import glob
 import re
 import os
+import math
 
 from tqdm import tqdm # for a loading bar go give a sense of progress for slow computations
 from collections import Counter
@@ -137,12 +138,29 @@ def objects_counts(doc, n: int = 10) -> list[tuple[str, int]]:
     counter = Counter(token.lemma_ for token in doc if token.dep_ == "dobj")
     return counter.most_common(n)
 
-def subjects_by_verb_pmi(doc, target_verb):
-    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
+def subjects_by_verb_pmi(doc, target_verb, n: int = 10) -> list[str]:
+    """Extracts the most common subjects of a given verb in a parsed document, by PMI. Returns a list."""
+    # total number of words
+    word_count = sum(1 for token in doc)
+    # count of the verb. only includes occurences *as a verb*.
+    verb_count = sum(token.lemma_ == target_verb and token.pos_ == "VERB" for token in doc)
+    # counts of all verb subjects
+    all_subj_counter = Counter(token.lemma_ for token in doc if token.dep_ == "nsubj")
+    # counts of subjects of the target_verb (i.e. 'hear', in practice)
+    target_verb_subj_counter = Counter(token.lemma_ for token in doc if token.dep_ == "nsubj" and token.head.lemma_ == target_verb)
 
+    def PMI(word: str) -> float:
+        return math.log(
+            (target_verb_subj_counter[word] / word_count)
+            /
+            ((all_subj_counter[word] / word_count) * (verb_count/ word_count))
+        )
+
+    # sorted list (in order of descending PMI). We only need to look at those that actually appear with the target verb as all others have a PMI of -inf
+    return list(sorted(target_verb_subj_counter.keys(), key=lambda w: PMI(w), reverse=True))[:n]
 
 def subjects_by_verb_count(doc, verb, n: int = 10):
-    """Extracts the most common subjects (as lemmas) of a given verb in a parsed document. Returns a list."""
+    """Extracts the most common subjects (as lemmas) of a given verb in a parsed document, by frequency. Returns a list."""
     counter = Counter(token.lemma_ for token in doc if token.dep_ == "nsubj" and token.head.lemma_ == verb)
     return counter.most_common(n)
 
@@ -176,9 +194,7 @@ if __name__ == "__main__":
         print(subjects_by_verb_count(row["doc"], "hear"))
         print("\n")
 
-    """
     for i, row in df.iterrows():
         print(row["title"])
         print(subjects_by_verb_pmi(row["doc"], "hear"))
         print("\n")
-    """
