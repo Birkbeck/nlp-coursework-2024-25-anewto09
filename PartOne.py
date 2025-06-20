@@ -3,6 +3,7 @@
 # Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
 
 import nltk
+import nltk.corpus
 #import spacy
 import pandas as pd
 from pathlib import Path
@@ -28,7 +29,23 @@ def fk_level(text, d):
     Returns:
         float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
     """
-    pass
+    sentences = nltk.sent_tokenize(text)
+    words = [t for s in sentences for t in no_punct_tokenise(s)]
+    pronounceable_words = [w for w in words if w in d]
+    num_syllables = sum(len(d[w]) for w in pronounceable_words)
+    # Flesch-Kincaid grade formula from week 3 slides,
+    # modified slightly to take into account some words not being in `d`.
+    # Since the two terms can be thought of as average sentence length and average syllables in a word,
+    # it seemed sensible to include words with unknown pronunciations for the former but not for the latter.
+    return 0.39 *(len(words) / len(sentences)) + 11.8 * (num_syllables / len(pronounceable_words)) - 15.59
+
+def flesch_kincaid(df: pd.DataFrame) -> dict[str, float]:
+    """
+    Produces a dict mapping titles to Flesch-Kincaid reading grade level scores
+    """
+    return {
+        row["title"]: fk_level(row["text"], nltk.corpus.cmudict.dict()) for i, row in df.iterrows()
+    }
 
 
 def count_syl(word, d):
@@ -73,12 +90,14 @@ def ispunctuation(token: str) -> bool:
     """Returns True if the given token is punctuation"""
     return re.match(r"^\W*$", token)
 
+def no_punct_tokenise(text: str) -> list[str]:
+    """Tokenises text case-insensitively without punctuation, using nltk's word tokeniser"""
+    return [t.lower() for t in nltk.word_tokenize(text) if not ispunctuation(t)] 
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    tokens = [t.lower() for t in nltk.word_tokenize(text) if not ispunctuation(t)] # ignore punctuation and case
+    tokens = no_punct_tokenise(text)
     types = Counter(tokens)
-    print(list(types.keys()))
     return (
         len(types) # number of token types
         /
@@ -129,11 +148,13 @@ if __name__ == "__main__":
     print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
     print(df.head())
+    print(flesch_kincaid(df))
     #nltk.download('punkt') # nltk insisted on this in an error message
+    #nltk.download('punkt_tab') # and this
     #nltk.download("cmudict")
     #parse(df)
     #print(df.head())
-    print(get_ttrs(df))
+    #print(get_ttrs(df))
     #print(get_fks(df))
     #df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
     # print(adjective_counts(df))
