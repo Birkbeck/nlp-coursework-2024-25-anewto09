@@ -137,15 +137,15 @@ def objects_counts(doc, n: int = 10) -> list[tuple[str, int]]:
     counter = Counter(token.text for token in doc if token.dep_ == "dobj")
     return counter.most_common(n)
 
-def subjects_by_verb_count(doc, verb):
+def subjects_by_verb_pmi(doc, target_verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
     pass
 
 
-
-def adjective_counts(doc):
-    """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
+def subjects_by_verb_count(doc, verb):
+    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
     pass
+
 
 if __name__ == "__main__":
     """
