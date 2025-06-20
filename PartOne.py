@@ -32,7 +32,7 @@ def fk_level(text, d):
     sentences = nltk.sent_tokenize(text)
     words = [t for s in sentences for t in no_punct_tokenise(s)]
     pronounceable_words = [w for w in words if w in d]
-    num_syllables = sum(len(d[w]) for w in pronounceable_words)
+    num_syllables = sum(count_syl(w, d) for w in pronounceable_words)
     # Flesch-Kincaid grade formula from week 3 slides,
     # modified slightly to take into account some words not being in `d`.
     # Since the two terms can be thought of as average sentence length and average syllables in a word,
@@ -47,7 +47,7 @@ def flesch_kincaid(df: pd.DataFrame) -> dict[str, float]:
         row["title"]: fk_level(row["text"], nltk.corpus.cmudict.dict()) for _, row in df.iterrows()
     }
 
-
+VOWELS = {"A", "E", "I", "O", "U"}
 def count_syl(word, d):
     """Counts the number of syllables in a word given a dictionary of syllables per word.
     if the word is not in the dictionary, syllables are estimated by counting vowel clusters
@@ -59,7 +59,14 @@ def count_syl(word, d):
     Returns:
         int: The number of syllables in the word.
     """
-    pass
+    # according to the nltk documentation (https://www.nltk.org/_modules/nltk/corpus/reader/cmudict.html)
+    # the CMU pronouncing dictionary maps lower case words to lists of pronunciations.
+    # Each pronunciation is a list of phonemes.
+    # The way each phoneme is represented is such that the representations of vowel phonemes are start with vowels,
+    # and the representations of consonant phonemes all start with consonants.
+    # This is how vowel phonemes and hence number of syllables will be counted
+    pronunciation = d[word][0]
+    return sum(phon[0] in VOWELS for phon in pronunciation)
 
 
 def read_novels(path=Path.cwd() / "texts" / "novels"):
