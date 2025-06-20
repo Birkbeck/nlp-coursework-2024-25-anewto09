@@ -137,6 +137,16 @@ def objects_counts(doc, n: int = 10) -> list[tuple[str, int]]:
     counter = Counter(token.text for token in doc if token.dep_ == "dobj")
     return counter.most_common(n)
 
+def subjects_by_verb_count(doc, verb):
+    """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
+    pass
+
+
+
+def adjective_counts(doc):
+    """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
+    pass
+
 if __name__ == "__main__":
     """
     uncomment the following lines to run the functions once you have completed them
@@ -159,3 +169,15 @@ if __name__ == "__main__":
     for _, row in df.iterrows():
         print(row["title"])
         print(objects_counts(row["doc"]))
+
+    """ 
+    for i, row in df.iterrows():
+        print(row["title"])
+        print(subjects_by_verb_count(row["parsed"], "hear"))
+        print("\n")
+
+    for i, row in df.iterrows():
+        print(row["title"])
+        print(subjects_by_verb_pmi(row["parsed"], "hear"))
+        print("\n")
+    """
