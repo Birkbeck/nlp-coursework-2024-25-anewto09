@@ -25,3 +25,14 @@ if __name__ == "__main__":
     df = pd.read_csv(DATASET_PATH)
     df = clean_hansard(df)
     print(f"Shape of cleaned Hansard dataframe: {df.shape}")
+
+    text_train, text_test, party_train, party_test = train_test_split(
+        df["speech"], df["party"],
+        test_size=0.5,
+        random_state=26,
+        shuffle=True,
+        stratify=df["party"]
+    )
+
+    print(text_train.shape)
+    print(text_test.shape)
