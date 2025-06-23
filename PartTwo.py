@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import LinearSVC
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, classification_report
 
 DATASET_PATH = pathlib.Path(__file__).parent / "p2-texts" / "hansard40000.csv"
 
@@ -54,5 +54,9 @@ if __name__ == "__main__":
         classifier.fit(vec_train, party_train)
         party_pred = classifier.predict(vec_test)
         f1sc = f1_score(party_test, party_pred, average="macro")
-        print(f"{name} f1 score:", f1sc)
+        print(f"{name} macro-average f1 score:", f1sc)
+        print(f"{name} classification report:")
+        print(classification_report(party_test, party_pred))
+
+    
         
