@@ -26,21 +26,20 @@ def clean_hansard(df: pd.DataFrame, n_parties: int = 4) -> pd.DataFrame:
     df = df[(df["speech_class"] == "Speech") & (df["speech"].str.len() >= 1000)]
     return df
 
-def try_vectoriser(vectoriser_params: dict, print_f1_macroavg: bool = False):
-    vectoriser = TfidfVectorizer(**params)
-        vec_train = vectoriser.fit_transform(text_train)
-        vec_test = vectoriser.transform(text_test)
+def try_vectoriser(vectoriser, print_f1_macroavg: bool = False):
+    vec_train = vectoriser.fit_transform(text_train)
+    vec_test = vectoriser.transform(text_test)
 
-        classifiers = ((RandomForestClassifier(n_estimators=300), "RandomForest"),
-                    (LinearSVC(), "SVM with linear kernel"))
-        for classifier, name in classifiers:
-            classifier.fit(vec_train, party_train)
-            party_pred = classifier.predict(vec_test)
-            f1sc = f1_score(party_test, party_pred, average="macro")
-            if print_f1_macroavg: # only print macro-avg f1 for part (c)
-                print(f"{name} macro-average f1 score:", f1sc)
-            print(f"{name} classification report:")
-            print(classification_report(party_test, party_pred))
+    classifiers = ((RandomForestClassifier(n_estimators=300), "RandomForest"),
+                (LinearSVC(), "SVM with linear kernel"))
+    for classifier, name in classifiers:
+        classifier.fit(vec_train, party_train)
+        party_pred = classifier.predict(vec_test)
+        f1sc = f1_score(party_test, party_pred, average="macro")
+        if print_f1_macroavg: # only print macro-avg f1 for part (c)
+            print(f"{name} macro-average f1 score:", f1sc)
+        print(f"{name} classification report:")
+        print(classification_report(party_test, party_pred))
 
 if __name__ == "__main__":
     # part (a)
@@ -56,5 +55,4 @@ if __name__ == "__main__":
         shuffle=True,
         stratify=df["party"]
     )
-
-    try_vectoriser({'stop_words': 'english', 'max_features': 3000}, True)
+    try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000), True)
