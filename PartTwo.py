@@ -55,4 +55,9 @@ if __name__ == "__main__":
         shuffle=True,
         stratify=df["party"]
     )
+    
+    print("Unigrams only:")
     try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000), True)
+
+    print("Unigrams, bigrams, and trigrams:")
+    try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000, ngram_range=(1, 3)))
