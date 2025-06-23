@@ -10,7 +10,7 @@ DATASET_PATH = pathlib.Path(__file__).parent / "p2-texts" / "hansard40000.csv"
 
 def clean_hansard(df: pd.DataFrame, n_parties: int = 4) -> pd.DataFrame:
     # 2(a) i.
-    df = df.replace(to_replace="Labour",
+    df = df.replace(to_replace="Labour (Co-op)",
                     value={
                         "party": "Labour"
                     })
