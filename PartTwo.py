@@ -54,7 +54,11 @@ NEGATIVE_WORDS = {"not", "no", "never", "neither", "none", "zero", "non", "doesn
                   "shouldn't", "wouldn't", "unable", "unwilling", "incompetent", "fewer", "less", "bad", "awful",
                   "terrible", "dreadful", "evil", "disastrous"}
 STOPWORDS = stopwords.words("english")
-def custom_tokeniser(text: str) -> list[str]:
+def custom_tokeniser(text: str, constituency_subs: dict[str, re.Pattern] = {}) -> list[str]:
+    # replace constituency names with special tokens
+    for party, pattern in constituency_subs.items():
+        text = pattern.sub(party + "SAFESEAT", text)
+
     # split on non-alphanumeric characters, except apostrophes and hyphens, keeping the separators
     tokens = re.split(r"([^\w'-]+)", text)
 
@@ -76,6 +80,41 @@ def custom_tokeniser(text: str) -> list[str]:
             neg = False
 
     return new_tokens
+
+def get_party_seats(df: pd.DataFrame) -> dict[str, set[str]]:
+    """
+    Gets the seats held by each party at any point.
+    For convenience this retrieved from the Hansard dataset but in principle in could be obtained from another source,
+    so the fact that part of this info may be taken from test data for the classifiers isn't really a problem.
+    """
+    party_seats = {}
+    for _, row in df.iterrows():
+        party, constituency = row["party"], row["constituency"]
+        if not isinstance(constituency, str):  # some entries are numeric; ignore these
+            continue
+        party_seats.setdefault(party, set()).add(constituency)
+    return party_seats
+
+def get_constituency_substitutions(party_seats: dict[str, set[str]]) -> dict[str, re.Pattern]:
+    """
+    Produces regex patterns for replacing the names of a party's safe seats with a token identifying them as such.
+    """
+    # look for seats that have been held by multiple parties and remove them
+    exclude = set()
+    checked = set()
+    for party1 in party_seats:
+        checked.add(party1)
+        for party2 in party_seats:
+            if party2 in checked:
+                continue
+            exclude.update(party_seats[party1] & party_seats[party2])
+        party_seats[party1].difference_update(exclude)
+    # turn the constituency names into regular expressions
+    return {
+        party: re.compile("|".join(
+            constituency for constituency in party_seats[party]
+        ), re.IGNORECASE) for party in party_seats
+    }
 
 if __name__ == "__main__":
     # part (a)
@@ -102,12 +141,17 @@ if __name__ == "__main__":
 
     # part (e)
     print("Custom tokeniser:")
+
+    # see docstring of get_party_seats for why using the whole dataset is ok here
+    constituency_subs = get_constituency_substitutions(get_party_seats(df))
+
     prog = tqdm.tqdm(total=df.shape[0])
     def wrapped_tokeniser(text: str) -> list[str]:
-        tokens = custom_tokeniser(text)
+        tokens = custom_tokeniser(text, constituency_subs)
         if len(text) >= 1000:  # need this because TfidVectorizer runs the tokenisation on the stop words
             prog.update(1)
         if prog.n == prog.total:
             prog.close()
         return tokens
+
     try_vectoriser(TfidfVectorizer(max_features=3000, tokenizer=wrapped_tokeniser, ngram_range=(1, 3)))
