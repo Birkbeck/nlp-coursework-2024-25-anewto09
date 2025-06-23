@@ -1,7 +1,7 @@
 import pathlib
 import pandas as pd
 import re
-from nltk.corpus import wordnet, stopwords
+from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -44,11 +44,6 @@ def try_vectoriser(vectoriser, print_f1_macroavg: bool = False):
         print(f"{name} classification report:")
         print(classification_report(party_test, party_pred))
 
-def normalise_morphology(token: str) -> str:
-    token = token.lower()
-    token = wordnet.morphy(token) or token
-    return token
-
 NEGATIVE_WORDS = {"not", "no", "never", "neither", "none", "zero", "non", "doesn't", "don't", "won't", "hasn't",
                   "hadn't", "isn't", "aren't", "ain't", "wasn't", "weren't", "can't", "shan't", "mustn't", "couldn't",
                   "shouldn't", "wouldn't", "unable", "unwilling", "incompetent", "fewer", "less", "bad", "awful",
@@ -71,7 +66,7 @@ def custom_tokeniser(text: str, constituency_subs: dict[str, re.Pattern] = {}) -
     new_tokens = []
     neg = False
     for i, t in enumerate(tokens):
-        t = normalise_morphology(t)
+        t.lower()
         if t not in STOPWORDS:
             new_tokens.append(t + ("_NEG" if neg else ""))
         if t in NEGATIVE_WORDS:
