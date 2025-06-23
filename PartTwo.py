@@ -46,7 +46,7 @@ def try_vectoriser(vectoriser, print_f1_macroavg: bool = False):
 
 def normalise_morphology(token: str) -> str:
     token = token.lower()
-    #token = wordnet.morphy(token) or token
+    token = wordnet.morphy(token) or token
     return token
 
 NEGATIVE_WORDS = {"not", "no", "never", "neither", "none", "zero", "non", "doesn't", "don't", "won't", "hasn't",
