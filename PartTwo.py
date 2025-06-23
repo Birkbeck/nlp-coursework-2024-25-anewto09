@@ -2,6 +2,9 @@ import pathlib
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import LinearSVC
+from sklearn.metrics import f1_score
 
 DATASET_PATH = pathlib.Path(__file__).parent / "p2-texts" / "hansard40000.csv"
 
@@ -43,3 +46,13 @@ if __name__ == "__main__":
     )
     vec_train = vectoriser.fit_transform(text_train)
     vec_test = vectoriser.transform(text_test)
+
+    # part (c)
+    classifiers = ((RandomForestClassifier(n_estimators=300), "RandomForest"),
+                   (LinearSVC(), "SVM with linear kernel"))
+    for classifier, name in classifiers:
+        classifier.fit(vec_train, party_train)
+        party_pred = classifier.predict(vec_test)
+        f1sc = f1_score(party_test, party_pred, average="macro")
+        print(f"{name} f1 score:", f1sc)
+        
