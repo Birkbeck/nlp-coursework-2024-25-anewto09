@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import LinearSVC
 from sklearn.metrics import f1_score, classification_report
+import tqdm
 
 DATASET_PATH = pathlib.Path(__file__).parent / "p2-texts" / "hansard40000.csv"
 
@@ -43,35 +44,36 @@ def try_vectoriser(vectoriser, print_f1_macroavg: bool = False):
         print(f"{name} classification report:")
         print(classification_report(party_test, party_pred))
 
-def normalise_synonyms(token: str, syn_map: dict[str, str]) -> str:
-    """Converts a token such that when this function is applied to all (initial) tokens, synonyms end up as the same token"""
-    # first, ignore case and morphology
+def normalise_morphology(token: str) -> str:
     token = token.lower()
-    token = wordnet.morphy(token) or token 
-
-    # if already have established 'normalised' form then can return this
-    if token in syn_map:
-        return syn_map[token]
-
-    # otherwise we will make this the 'normalised' form for this word and its synonyms
-    synonyms = wordnet.synonyms(token)
-    
-    if not synonyms:
-        return token
-    
-    synonyms = {syn for syn_list in synonyms for syn in syn_list}
-    synonyms.add(token)
-    syn_map.update({syn: token for syn in synonyms})
-
+    token = wordnet.morphy(token) or token
     return token
 
+NEGATIVE_WORDS = {"not", "no", "never", "neither", "none", "zero", "non", "doesn't", "don't", "won't", "hasn't",
+                  "hadn't", "isn't", "aren't", "ain't", "wasn't", "weren't", "can't", "shan't", "mustn't", "couldn't",
+                  "shouldn't", "wouldn't"}
 def custom_tokeniser(text: str) -> list[str]:
-    # split on non-alphanumeric characters, except apostrophes
-    tokens = re.split(r"[^\w']+", text)
-    # lump synonyms into same token
-    syn_map = {}
-    tokens = [normalise_synonyms(t, syn_map) for t in tokens]
-    return tokens
+    # split on non-alphanumeric characters, except apostrophes and hyphens, keeping the separators
+    tokens = re.split(r"([^\w'-]+)", text)
+
+    # separate into actual tokens and separators
+    separators = tokens[1::2]
+    tokens = tokens[::2]
+
+    # ignore morphology
+    tokens = [normalise_morphology(t) for t in tokens]
+
+    # append _NOT to any token between a negative word and the next punctuation
+    new_tokens = []
+    neg = False
+    for i, t in enumerate(tokens):
+        new_tokens.append(t + ("_NOT" if neg else ""))
+        if t in NEGATIVE_WORDS:
+            neg = True
+        if i < len(separators) and separators[i] != " ":
+            neg = False
+
+    return new_tokens
 
 if __name__ == "__main__":
     # part (a)
@@ -98,4 +100,12 @@ if __name__ == "__main__":
 
     # part (e)
     print("Custom tokeniser:")
-    try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000, tokenizer=custom_tokeniser))
+    prog = tqdm.tqdm(total=df.shape[0])
+    def wrapped_tokeniser(text: str) -> list[str]:
+        tokens = custom_tokeniser(text)
+        if len(text) >= 1000:  # don't include tokenisation of stop words
+            prog.update(1)
+        if prog.n == prog.total:
+            prog.close()
+        return tokens
+    try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000, tokenizer=wrapped_tokeniser))
