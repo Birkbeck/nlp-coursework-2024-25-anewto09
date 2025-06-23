@@ -40,23 +40,31 @@ if __name__ == "__main__":
         shuffle=True,
         stratify=df["party"]
     )
-    vectoriser = TfidfVectorizer(
-        stop_words='english',
-        max_features=3000
-    )
-    vec_train = vectoriser.fit_transform(text_train)
-    vec_test = vectoriser.transform(text_test)
 
-    # part (c)
-    classifiers = ((RandomForestClassifier(n_estimators=300), "RandomForest"),
-                   (LinearSVC(), "SVM with linear kernel"))
-    for classifier, name in classifiers:
-        classifier.fit(vec_train, party_train)
-        party_pred = classifier.predict(vec_test)
-        f1sc = f1_score(party_test, party_pred, average="macro")
-        print(f"{name} macro-average f1 score:", f1sc)
-        print(f"{name} classification report:")
-        print(classification_report(party_test, party_pred))
+    vectoriser_params = (
+        # parts (b)/(c)
+        {
+            'stop_words': 'english',
+            'max_features': 3000
+        }
+    )
+    first = True
+    for params in vectoriser_params:
+        vectoriser = TfidfVectorizer(**params)
+        vec_train = vectoriser.fit_transform(text_train)
+        vec_test = vectoriser.transform(text_test)
+
+        classifiers = ((RandomForestClassifier(n_estimators=300), "RandomForest"),
+                    (LinearSVC(), "SVM with linear kernel"))
+        for classifier, name in classifiers:
+            classifier.fit(vec_train, party_train)
+            party_pred = classifier.predict(vec_test)
+            f1sc = f1_score(party_test, party_pred, average="macro")
+            if first: # only print macro-avg f1 for part (c)
+                print(f"{name} macro-average f1 score:", f1sc)
+                first = False
+            print(f"{name} classification report:")
+            print(classification_report(party_test, party_pred))
 
     
         
