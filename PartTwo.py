@@ -29,20 +29,27 @@ def clean_hansard(df: pd.DataFrame, n_parties: int = 4) -> pd.DataFrame:
     df = df[(df["speech_class"] == "Speech") & (df["speech"].str.len() >= 1000)]
     return df
 
-def try_vectoriser(vectoriser, print_f1_macroavg: bool = False):
+def try_vectoriser(vectoriser, print_f1_macroavg: bool = False, best_only: bool = False):
     vec_train = vectoriser.fit_transform(text_train)
     vec_test = vectoriser.transform(text_test)
 
-    classifiers = ((RandomForestClassifier(n_estimators=300), "RandomForest"),
-                (LinearSVC(), "SVM with linear kernel"))
-    for classifier, name in classifiers:
+    classifiers = (RandomForestClassifier(n_estimators=300), LinearSVC())
+    def train_and_test(classifier):
         classifier.fit(vec_train, party_train)
         party_pred = classifier.predict(vec_test)
-        f1sc = f1_score(party_test, party_pred, average="macro")
-        if print_f1_macroavg: # only print macro-avg f1 for part (c)
-            print(f"{name} macro-average f1 score:", f1sc)
-        print(f"{name} classification report:")
-        print(classification_report(party_test, party_pred))
+        return (classifier.__class__.__name__,
+                f1_score(party_test, party_pred, average="macro"),
+                classification_report(party_test, party_pred))
+    results = [train_and_test(c) for c in classifiers]
+    if best_only:
+        results = [max(results, key=lambda r: r[1])]
+    for res in results:
+        print(res[0])
+        if print_f1_macroavg:
+            print("Macro-average f1 score:", res[1])
+        print("Classification report:")
+        print(res[2])
+
 
 NEGATIVE_WORDS = {"not", "no", "never", "neither", "none", "zero", "non", "doesn't", "don't", "won't", "hasn't",
                   "hadn't", "isn't", "aren't", "ain't", "wasn't", "weren't", "can't", "shan't", "mustn't", "couldn't",
@@ -127,12 +134,12 @@ if __name__ == "__main__":
     )
     
     # part (b) / (c)
-    #print("Unigrams only:")
-    #try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000), True)
+    print("Unigrams only:")
+    try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000), print_f1_macroavg=True)
 
     # part (d)
-    #print("Unigrams, bigrams, and trigrams:")
-    #try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000, ngram_range=(1, 3)))
+    print("Unigrams, bigrams, and trigrams:")
+    try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000, ngram_range=(1, 3)))
 
     # part (e)
     print("Custom tokeniser:")
@@ -143,10 +150,9 @@ if __name__ == "__main__":
     prog = tqdm.tqdm(total=df.shape[0])
     def wrapped_tokeniser(text: str) -> list[str]:
         tokens = custom_tokeniser(text, constituency_subs)
-        if len(text) >= 1000:  # need this because TfidVectorizer runs the tokenisation on the stop words
-            prog.update(1)
+        prog.update(1)
         if prog.n == prog.total:
             prog.close()
         return tokens
 
-    try_vectoriser(TfidfVectorizer(max_features=3000, tokenizer=wrapped_tokeniser, ngram_range=(1, 3)))
+    try_vectoriser(TfidfVectorizer(max_features=3000, tokenizer=wrapped_tokeniser, ngram_range=(1, 3)), best_only=True)
