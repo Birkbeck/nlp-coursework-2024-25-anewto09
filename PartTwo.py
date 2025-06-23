@@ -1,7 +1,7 @@
 import pathlib
 import pandas as pd
 import re
-from nltk.corpus import wordnet
+from nltk.corpus import wordnet, stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -46,12 +46,14 @@ def try_vectoriser(vectoriser, print_f1_macroavg: bool = False):
 
 def normalise_morphology(token: str) -> str:
     token = token.lower()
-    token = wordnet.morphy(token) or token
+    #token = wordnet.morphy(token) or token
     return token
 
 NEGATIVE_WORDS = {"not", "no", "never", "neither", "none", "zero", "non", "doesn't", "don't", "won't", "hasn't",
                   "hadn't", "isn't", "aren't", "ain't", "wasn't", "weren't", "can't", "shan't", "mustn't", "couldn't",
-                  "shouldn't", "wouldn't"}
+                  "shouldn't", "wouldn't", "unable", "unwilling", "incompetent", "fewer", "less", "bad", "awful",
+                  "terrible", "dreadful", "evil", "disastrous"}
+STOPWORDS = stopwords.words("english")
 def custom_tokeniser(text: str) -> list[str]:
     # split on non-alphanumeric characters, except apostrophes and hyphens, keeping the separators
     tokens = re.split(r"([^\w'-]+)", text)
@@ -60,14 +62,14 @@ def custom_tokeniser(text: str) -> list[str]:
     separators = tokens[1::2]
     tokens = tokens[::2]
 
-    # ignore morphology
-    tokens = [normalise_morphology(t) for t in tokens]
-
-    # append _NOT to any token between a negative word and the next punctuation
+    # lump tokens of the same base form together, filter stopwords,
+    # and append _NEG to any token between a negative word and the next punctuation,
     new_tokens = []
     neg = False
     for i, t in enumerate(tokens):
-        new_tokens.append(t + ("_NOT" if neg else ""))
+        t = normalise_morphology(t)
+        if t not in STOPWORDS:
+            new_tokens.append(t + ("_NEG" if neg else ""))
         if t in NEGATIVE_WORDS:
             neg = True
         if i < len(separators) and separators[i] != " ":
@@ -91,21 +93,21 @@ if __name__ == "__main__":
     )
     
     # part (b) / (c)
-    # print("Unigrams only:")
-    # try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000), True)
+    #print("Unigrams only:")
+    #try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000), True)
 
-    # # part (d)
-    # print("Unigrams, bigrams, and trigrams:")
-    # try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000, ngram_range=(1, 3)))
+    # part (d)
+    #print("Unigrams, bigrams, and trigrams:")
+    #try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000, ngram_range=(1, 3)))
 
     # part (e)
     print("Custom tokeniser:")
     prog = tqdm.tqdm(total=df.shape[0])
     def wrapped_tokeniser(text: str) -> list[str]:
         tokens = custom_tokeniser(text)
-        if len(text) >= 1000:  # don't include tokenisation of stop words
+        if len(text) >= 1000:  # need this because TfidVectorizer runs the tokenisation on the stop words
             prog.update(1)
         if prog.n == prog.total:
             prog.close()
         return tokens
-    try_vectoriser(TfidfVectorizer(stop_words='english', max_features=3000, tokenizer=wrapped_tokeniser))
+    try_vectoriser(TfidfVectorizer(max_features=3000, tokenizer=wrapped_tokeniser, ngram_range=(1, 3)))
