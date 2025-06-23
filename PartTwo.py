@@ -1,6 +1,7 @@
 import pathlib
 import pandas as pd
 import re
+import trrex
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
@@ -113,9 +114,7 @@ def get_constituency_substitutions(party_seats: dict[str, set[str]]) -> dict[str
         party_seats[party1].difference_update(exclude)
     # turn the constituency names into regular expressions
     return {
-        party: re.compile("|".join(
-            constituency for constituency in party_seats[party]
-        ), re.IGNORECASE) for party in party_seats
+        party: re.compile(trrex.make(party_seats[party]), re.IGNORECASE) for party in party_seats
     }
 
 if __name__ == "__main__":
