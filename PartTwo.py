@@ -2,6 +2,7 @@ import nltk
 import pandas as pd
 import pathlib
 import re
+import time
 import tqdm  # for a loading bar to give a sense of progress for slow computations
 import trrex  # needed to optimise regex for the custom tokeniser, otherwise it takes about 6 times longer
 
@@ -35,8 +36,10 @@ def clean_hansard(df: pd.DataFrame, n_parties: int = 4) -> pd.DataFrame:
     return df
 
 def try_vectoriser(vectoriser, print_f1_macroavg: bool = False, best_only: bool = False):
+    start = time.perf_counter()
     vec_train = vectoriser.fit_transform(text_train)
     vec_test = vectoriser.transform(text_test)
+    print(f"({time.perf_counter()-start}s to vectorise)")
 
     classifiers = (RandomForestClassifier(n_estimators=300), LinearSVC())
     def train_and_test(classifier):
