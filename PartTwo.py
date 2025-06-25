@@ -160,4 +160,6 @@ if __name__ == "__main__":
             prog.close()
         return tokens
 
-    try_vectoriser(TfidfVectorizer(max_features=3000, tokenizer=wrapped_tokeniser, ngram_range=(1, 3)), best_only=True)
+    try_vectoriser(TfidfVectorizer(
+        max_features=3000, tokenizer=wrapped_tokeniser, ngram_range=(1, 3), token_pattern=None
+    ), best_only=True)
