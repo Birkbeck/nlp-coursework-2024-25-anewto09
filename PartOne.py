@@ -1,7 +1,3 @@
-#Re-assessment template 2025
-
-# Note: The template functions here and the dataframe format for structuring your solution is a suggested but not mandatory approach. You can use a different approach if you like, as long as you clearly answer the questions and communicate your answers clearly.
-
 import nltk
 import nltk.corpus
 import spacy
@@ -169,18 +165,18 @@ if __name__ == "__main__":
     """
     uncomment the following lines to run the functions once you have completed them
     """
-    #nltk.download('punkt') # nltk insisted on this in an error message
-    #nltk.download('punkt_tab') # and this
-    #nltk.download("cmudict")
+    nltk.download('punkt') # nltk insisted on this in an error message
+    nltk.download('punkt_tab') # and this
+    nltk.download("cmudict")
 
     path = Path.cwd() / "p1-texts" / "novels"
     print(path)
-    # df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    # print(df.head())
-    # print(nltk_ttr(df))
-    # print(flesch_kincaid(df))
-    # parse(df)
-    # print(df.head())
+    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    print(df.head())
+    print(nltk_ttr(df))
+    print(flesch_kincaid(df))
+    parse(df)
+    print(df.head())
     df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
     print(df.head())
     
