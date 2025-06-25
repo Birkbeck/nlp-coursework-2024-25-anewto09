@@ -1,8 +1,11 @@
+import nltk
 import pandas as pd
 import pathlib
 import re
 import tqdm  # for a loading bar to give a sense of progress for slow computations
 import trrex  # needed to optimise regex for the custom tokeniser, otherwise it takes about 6 times longer
+
+nltk.download("stopwords")
 
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -60,8 +63,8 @@ NEGATIVE_WORDS = {"not", "no", "never", "neither", "none", "zero", "non", "doesn
 STOPWORDS = stopwords.words("english")
 def custom_tokeniser(text: str, constituency_subs: dict[str, re.Pattern] = {}) -> list[str]:
     # replace constituency names with special tokens
-    for party, pattern in constituency_subs.items():
-        text = pattern.sub(party + "SAFESEAT", text)
+    for party_token, pattern in constituency_subs.items():
+        text = pattern.sub(party_token, text)
 
     # split on non-alphanumeric characters, except apostrophes and hyphens, keeping the separators
     tokens = re.split(r"([^\w'-]+)", text)
@@ -113,9 +116,10 @@ def get_constituency_substitutions(party_seats: dict[str, set[str]]) -> dict[str
                 continue
             exclude.update(party_seats[party1] & party_seats[party2])
         party_seats[party1].difference_update(exclude)
-    # turn the constituency names into regular expressions
+    # turn party names into special tokens (removing any non-alphanumeric chars so that the token doesn't get split up later)
+    # and turn the constituency names into regular expressions matching *any* of the party's safe seats
     return {
-        party: re.compile(trrex.make(party_seats[party]), re.IGNORECASE) for party in party_seats
+        re.sub("\W+", "", party) + "SAFESEAT": re.compile(trrex.make(party_seats[party]), re.IGNORECASE) for party in party_seats
     }
 
 if __name__ == "__main__":
