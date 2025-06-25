@@ -11,9 +11,9 @@ import re
 import os
 import math
 
-from tqdm import tqdm # for a loading bar go give a sense of progress for slow computations
 from collections import Counter
 from pathlib import Path
+from tqdm import tqdm # for a loading bar to give a sense of progress for slow computations
 
 nlp = spacy.load("en_core_web_sm")
 nlp.max_length = 2000000

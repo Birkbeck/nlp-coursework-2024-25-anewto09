@@ -1,0 +1,6 @@
+pandas
+nltk
+scikit-learn
+spacy
+tqdm  # loading bars to give a sense of progress for slow computations
+trrex  # needed to optimise regex for the custom tokeniser, otherwise it takes about 6 times longer

@@ -1,14 +1,15 @@
-import pathlib
 import pandas as pd
+import pathlib
 import re
-import trrex
+import tqdm  # for a loading bar to give a sense of progress for slow computations
+import trrex  # needed to optimise regex for the custom tokeniser, otherwise it takes about 6 times longer
+
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import LinearSVC
 from sklearn.metrics import f1_score, classification_report
-import tqdm
 
 DATASET_PATH = pathlib.Path(__file__).parent / "p2-texts" / "hansard40000.csv"
 
