@@ -120,7 +120,7 @@ def get_constituency_substitutions(party_seats: dict[str, set[str]]) -> dict[str
     # turn party names into special tokens (removing any non-alphanumeric chars so that the token doesn't get split up later)
     # and turn the constituency names into regular expressions matching *any* of the party's safe seats
     return {
-        re.sub("\W+", "", party) + "SEAT": re.compile(trrex.make(party_seats[party]), re.IGNORECASE) for party in party_seats
+        re.sub(r"\W+", "", party) + "SEAT": re.compile(trrex.make(party_seats[party]), re.IGNORECASE) for party in party_seats
     }
 
 if __name__ == "__main__":
