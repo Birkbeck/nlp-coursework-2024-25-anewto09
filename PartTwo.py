@@ -90,7 +90,7 @@ def custom_tokeniser(text: str, constituency_subs: dict[str, re.Pattern] = {}) -
 
 def get_party_seats(df: pd.DataFrame) -> dict[str, set[str]]:
     """
-    Gets the seats held by each party at any point.
+    Gets the seats held by each party.
     For convenience this retrieved from the Hansard dataset but in principle in could be obtained from another source,
     so the fact that part of this info may be taken from test data for the classifiers isn't really a problem.
     """
@@ -104,9 +104,10 @@ def get_party_seats(df: pd.DataFrame) -> dict[str, set[str]]:
 
 def get_constituency_substitutions(party_seats: dict[str, set[str]]) -> dict[str, re.Pattern]:
     """
-    Produces regex patterns for replacing the names of a party's safe seats with a token identifying them as such.
+    Produces regex patterns for replacing the names of a party's constituencies with a token identifying them as such.
     """
     # look for seats that have been held by multiple parties and remove them
+    # (actually it turns out there are no such seats in the dataset, but I did not know this originally)
     exclude = set()
     checked = set()
     for party1 in party_seats:
@@ -119,7 +120,7 @@ def get_constituency_substitutions(party_seats: dict[str, set[str]]) -> dict[str
     # turn party names into special tokens (removing any non-alphanumeric chars so that the token doesn't get split up later)
     # and turn the constituency names into regular expressions matching *any* of the party's safe seats
     return {
-        re.sub("\W+", "", party) + "SAFESEAT": re.compile(trrex.make(party_seats[party]), re.IGNORECASE) for party in party_seats
+        re.sub("\W+", "", party) + "SEAT": re.compile(trrex.make(party_seats[party]), re.IGNORECASE) for party in party_seats
     }
 
 if __name__ == "__main__":
