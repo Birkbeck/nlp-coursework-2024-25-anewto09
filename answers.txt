@@ -1,6 +1,20 @@
-1 (d) [TODO]
+1 (d) "When is the Flesch Kincaid score *not* a valid, robust or reliable estimator of 4 text difficulty? Give two conditions. (Text answer, 200 words maximum)."
+
+The Flesch-Kincaid grade level score formula was derived from a study on 531 US Navy personnel, whose known reading grade levels were used to assess the grade levels of 18 US Navy manuals, and then a multiple linear regression on words per sentence and syllables per word was fit to this data. (Kincaid et al. 1975)
+
+Hence, the Flesch-Kincaid grade level score is not valid, robust, or reliable when the text is not English-language prose.
+
+It is also not valid, robust, or reliable when the text is specifically written to reduce its Flesch-Kincaid grade level, as it is based on *correlations* with reading difficulty rather than actual causes of reading difficulty, so artificially improving the metrics used by the formula will not necessarily improve readers' comprehension of a text. (Redish, 2000)
+
+References:
+Kincaid, J. Peter; Fishburne, Robert P. Jr.; Rogers, Richard L.; and Chissom, Brad S., "Derivation Of New Readability Formulas (Automated Readability Index, Fog Count And Flesch Reading Ease Formula) For Navy Enlisted Personnel" (1975). Institute for Simulation and Training. 56.
+
+Janice Redish. 2000. Readability formulas have even more limitations than Klare discusses. ACM J. Comput. Doc. 24, 3 (Aug. 2000), 132–137. https://doi.org/10.1145/344599.344637
+
+---
 
 2 (f) "Explain your tokenizer function and discuss its performance."
+
 There are three stages in my tokeniser function.
 
 First, mentions of the names of constituencies represented by each party are replaced by a token (or, more accurately, what will become a token) indicating that the constituency is represented by that party. For example, "Kingston and Surbiton" is replaced by "LiberalDemocratSEAT". To determine what constituencies each party represents, for convenience I used the Hansard dataset itself, extracting those constituencies only associated with a single party, but in principle this information could be obtained from an external source instead. (This is done after cleaning the Hansard dataset, so Labour and Labour (Co-op) are counted as the same party and only the 4 most common parties (which turn out to be Conservative, Labour, Liberal Democrat, and Scottish National Party) have their constituency names substituted in this way).
