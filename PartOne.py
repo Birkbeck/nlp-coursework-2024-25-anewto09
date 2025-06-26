@@ -99,7 +99,7 @@ def no_punct_tokenise(text: str) -> list[str]:
     """Tokenises text case-insensitively without punctuation, using nltk's word tokeniser"""
     return [t.lower() for t in nltk.word_tokenize(text) if t not in string.punctuation]
 
-def single_ttr(text):
+def single_ttr(text) -> float:
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
     tokens = no_punct_tokenise(text)
     types = Counter(tokens)
@@ -122,8 +122,8 @@ def objects_counts(doc, n: int = 10) -> list[tuple[str, int]]:
     counter = Counter(token.lemma_ for token in doc if token.dep_ == "dobj")
     return counter.most_common(n)
 
-def subjects_by_verb_pmi(doc, target_verb, n: int = 10) -> list[str]:
-    """Extracts the most common subjects of a given verb in a parsed document, by PMI. Returns a list."""
+def subjects_by_verb_pmi(doc, target_verb, n: int = 10) -> list[tuple[str, float]]:
+    """Extracts the most common subjects of a given verb in a parsed document, by PMI. Returns a list of tuples."""
     # total number of words
     word_count = sum(1 for token in doc)
     # count of the verb. only includes occurences *as a verb*.
@@ -140,44 +140,51 @@ def subjects_by_verb_pmi(doc, target_verb, n: int = 10) -> list[str]:
             ((all_subj_counter[word] / word_count) * (verb_count/ word_count))
         )
 
+    words_with_pmi = ((w, PMI(w)) for w in target_verb_subj_counter)
     # sorted list (in order of descending PMI). We only need to look at those that actually appear with the target verb as all others have a PMI of -inf
-    return list(sorted(target_verb_subj_counter.keys(), key=lambda w: PMI(w), reverse=True))[:n]
+    return list(sorted(words_with_pmi, key=lambda x: x[1], reverse=True))[:n]
 
-def subjects_by_verb_count(doc, verb, n: int = 10):
-    """Extracts the most common subjects (as lemmas) of a given verb in a parsed document, by frequency. Returns a list."""
+def subjects_by_verb_count(doc, verb, n: int = 10) -> list[tuple[str, int]]:
+    """Extracts the most common subjects (as lemmas) of a given verb in a parsed document, by frequency. Returns a list of tuples."""
     counter = Counter(token.lemma_ for token in doc if token.dep_ == "nsubj" and token.head.lemma_ == verb)
     return counter.most_common(n)
 
 
 if __name__ == "__main__":
-    """
-    uncomment the following lines to run the functions once you have completed them
-    """
     nltk.download('punkt') # nltk insisted on this in an error message
     nltk.download('punkt_tab') # and this
     nltk.download("cmudict")
 
     path = Path.cwd() / "p1-texts" / "novels"
     print(path)
-    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    df = read_novels(path)
     print(df.head())
+
+    print("Type-token ratios:")
     print(nltk_ttr(df))
+
+    print("Flesch-Kincaid grade levels:")
     print(flesch_kincaid(df))
+
     parse(df)
     print(df.head())
+
     df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
     print(df.head())
-    
+
+    print("Most common syntactic objects (as lemmas):")
     for _, row in df.iterrows():
         print(row["title"])
         print(objects_counts(row["doc"]))
         print("\n")
 
+    print("Most common subjects of the verb 'to hear', by frequency:")
     for i, row in df.iterrows():
         print(row["title"])
         print(subjects_by_verb_count(row["doc"], "hear"))
         print("\n")
 
+    print("Most common subjects of the verb 'to hear', by pointwise mutual information:")
     for i, row in df.iterrows():
         print(row["title"])
         print(subjects_by_verb_pmi(row["doc"], "hear"))
